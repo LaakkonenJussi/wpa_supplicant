@@ -1,0 +1,120 @@
+From 0c62f3723c3c4782d67266b467ce7296eae99b7b Mon Sep 17 00:00:00 2001
+From: Samuel Ortiz <sameo@linux.intel.com>
+Date: Wed, 15 Dec 2010 20:36:41 +0100
+Subject: [PATCH 2/3] nl80211: Add a get_country hook
+
+Get the current regulatory domain through nl80211.
+---
+ src/drivers/driver.h         |    8 ++++++
+ src/drivers/driver_nl80211.c |   50 ++++++++++++++++++++++++++++++++++++++++++
+ wpa_supplicant/driver_i.h    |    7 ++++++
+ 3 files changed, 65 insertions(+), 0 deletions(-)
+
+diff --git a/src/drivers/driver.h b/src/drivers/driver.h
+index 511f613..31dcbb4 100644
+--- a/src/drivers/driver.h
++++ b/src/drivers/driver.h
+@@ -1081,6 +1081,14 @@ struct wpa_driver_ops {
+ 	 struct wpa_scan_results * (*get_scan_results2)(void *priv);
+ 
+ 	/**
++	 * get_country - get country
++	 * @priv: Private driver interface data
++	 * Returns: Allocated alpha2 null terminated string (caller is
++	 * responsible for freeing the data structure), NULL on failure.
++	 */
++	char * (*get_country)(void *priv);
++
++	/**
+ 	 * set_country - Set country
+ 	 * @priv: Private driver interface data
+ 	 * @alpha2: country to which to switch to
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index 364158c..1a3c4ac 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -1097,6 +1097,55 @@ static void wpa_driver_nl80211_event_receive(int sock, void *eloop_ctx,
+ }
+ 
+ 
++static int nl80211_get_country(struct nl_msg *msg, void *arg)
++{
++	char **alpha2 = arg;
++	struct nlattr *tb_msg[NL80211_ATTR_MAX + 1];
++	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
++
++	nla_parse(tb_msg, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
++		  genlmsg_attrlen(gnlh, 0), NULL);
++	if (!tb_msg[NL80211_ATTR_REG_ALPHA2] ||
++	    !tb_msg[NL80211_ATTR_REG_RULES]) {
++		wpa_printf(MSG_DEBUG, "nl80211: No regulatory information "
++			   "available");
++		return NL_SKIP;
++	}
++
++	*alpha2 = os_strdup((char *) nla_data(tb_msg[NL80211_ATTR_REG_ALPHA2]));
++
++	return NL_SKIP;
++}
++
++/**
++ * wpa_driver_nl80211_get_country - ask nl80211 to get the regulatory domain
++ * @priv: driver_nl80211 private data.
++ * Returns: An allocated alpha2 null terminated string, NULL on failure.
++ *
++ * This asks nl80211 to get the regulatory domain.
++ */
++static char *wpa_driver_nl80211_get_country(void *priv)
++{
++	struct i802_bss *bss = priv;
++	struct wpa_driver_nl80211_data *drv = bss->drv;
++	char *alpha2 = NULL;
++	struct nl_msg *msg;
++
++	msg = nlmsg_alloc();
++	if (!msg)
++		return NULL;
++
++	genlmsg_put(msg, 0, 0, genl_family_get_id(drv->nl80211), 0,
++		    0, NL80211_CMD_GET_REG, 0);
++
++	if (send_and_recv_msgs(drv, msg, nl80211_get_country, &alpha2))
++		return NULL;
++
++	wpa_printf(MSG_DEBUG, "nl80211: Country=%s", alpha2);
++
++	return alpha2;
++}
++
+ /**
+  * wpa_driver_nl80211_set_country - ask nl80211 to set the regulatory domain
+  * @priv: driver_nl80211 private data
+@@ -5345,6 +5394,7 @@ const struct wpa_driver_ops wpa_driver_nl80211_ops = {
+ 	.get_capa = wpa_driver_nl80211_get_capa,
+ 	.set_operstate = wpa_driver_nl80211_set_operstate,
+ 	.set_supp_port = wpa_driver_nl80211_set_supp_port,
++	.get_country = wpa_driver_nl80211_get_country,
+ 	.set_country = wpa_driver_nl80211_set_country,
+ 	.set_beacon = wpa_driver_nl80211_set_beacon,
+ 	.if_add = wpa_driver_nl80211_if_add,
+diff --git a/wpa_supplicant/driver_i.h b/wpa_supplicant/driver_i.h
+index a70aa6a..3058afa 100644
+--- a/wpa_supplicant/driver_i.h
++++ b/wpa_supplicant/driver_i.h
+@@ -265,6 +265,13 @@ static inline int wpa_drv_set_bssid(struct wpa_supplicant *wpa_s,
+ 	return -1;
+ }
+ 
++static inline char *wpa_drv_get_country(struct wpa_supplicant *wpa_s)
++{
++	if (wpa_s->driver->get_country)
++		return wpa_s->driver->get_country(wpa_s->drv_priv);
++	return NULL;
++}
++
+ static inline int wpa_drv_set_country(struct wpa_supplicant *wpa_s,
+ 				      const char *alpha2)
+ {
+-- 
+1.7.2.3
+

@@ -1,0 +1,47 @@
+Name: wpa_supplicant
+Summary: WPA/WPA2/IEEE 802.1X Supplicant
+Version: 0.7.3
+Release: 1
+Group: System/Base
+License: BSD
+URL: http://w1.fi/wpa_supplicant/
+Sources:
+    - http://w1.fi/releases/%{name}-%{version}.tar.gz
+    - "%{name}.config"
+Patches:
+    - 0001-eap_peer-create-a-libeap-library-with-header-files-a.patch
+    - 0001-events-Custom-event-for-broadcom-proprietary-driver.patch
+    - 0002-nl80211-Add-a-get_country-hook.patch
+    - 0003-dbus-Add-a-Country-global-property.patch
+    - wpa_s-alldrivers.patch
+
+Description: |
+    wpa_supplicant is a WPA Supplicant for Linux, BSD and Windows with support 
+    for WPA and WPA2 (IEEE 802.11i / RSN). Supplicant is the IEEE 802.1X/WPA 
+    component that is used in the client stations. It implements key negotiation 
+    with a WPA Authenticator and it controls the roaming and IEEE 802.11 
+    authentication/association of the wlan driver.
+PkgBR:
+    - readline
+PkgConfigBR:
+    - openssl
+    - libnl-1
+    - dbus-1
+Configure: none
+Builder: none
+SubPackages:
+    - Name: libeap0
+      AsWholeName: true
+      Summary: EAP-Peer runtime library
+      Group: System/Libraries
+      Description: |
+          This is just the runtime for EAP-Peer authentication.
+
+    - Name: libeap0-devel
+      AsWholeName: true
+      Requires: libeap0
+      Summary: EAP-Peer development support
+      Group: Development/Libraries
+      Description: |
+          Development support for for EAP-Peer authentication library
+          (header files and package config).

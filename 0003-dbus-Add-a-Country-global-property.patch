@@ -1,0 +1,121 @@
+From 079bd8b4cbe03d0beb2f7e17e0df4b851b2e6318 Mon Sep 17 00:00:00 2001
+From: Samuel Ortiz <sameo@linux.intel.com>
+Date: Wed, 15 Dec 2010 20:37:16 +0100
+Subject: [PATCH 3/3] dbus: Add a Country global property
+
+This read-write property allows to pass an ISO 3166-1 alpha2 string to the
+cfg80211 layer, through D-Bus.
+---
+ wpa_supplicant/dbus/dbus_new.c          |    5 +++
+ wpa_supplicant/dbus/dbus_new_handlers.c |   61 +++++++++++++++++++++++++++++++
+ wpa_supplicant/dbus/dbus_new_handlers.h |    6 +++
+ 3 files changed, 72 insertions(+), 0 deletions(-)
+
+diff --git a/wpa_supplicant/dbus/dbus_new.c b/wpa_supplicant/dbus/dbus_new.c
+index bdfbbac..64e2887 100644
+--- a/wpa_supplicant/dbus/dbus_new.c
++++ b/wpa_supplicant/dbus/dbus_new.c
+@@ -879,6 +879,11 @@ static const struct wpa_dbus_property_desc wpas_dbus_global_properties[] = {
+ 	  NULL,
+ 	  R
+ 	},
++	{ "Country", WPAS_DBUS_NEW_INTERFACE, "s",
++	  (WPADBusPropertyAccessor) wpas_dbus_getter_country,
++	  (WPADBusPropertyAccessor) wpas_dbus_setter_country,
++	  RW
++	},
+ 	{ NULL, NULL, NULL, NULL, NULL, 0 }
+ };
+ 
+diff --git a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_new_handlers.c
+index e2b5e50..6a0fe10 100644
+--- a/wpa_supplicant/dbus/dbus_new_handlers.c
++++ b/wpa_supplicant/dbus/dbus_new_handlers.c
+@@ -923,6 +923,67 @@ DBusMessage * wpas_dbus_getter_eap_methods(DBusMessage *message, void *nothing)
+ 	return reply;
+ }
+ 
++/**
++ * wpas_dbus_getter_country - Get the ISO/IEC alpha2 country code
++ * @message: Pointer to incoming dbus message
++ * @global: %wpa_supplicant global data structure
++ * Returns: DBus message with the alpha2 string
++ *
++ * Getter for "Country" property.
++ */
++DBusMessage * wpas_dbus_getter_country(DBusMessage *message,
++				       struct wpa_global *global)
++{
++	DBusMessage *reply;
++	struct wpa_supplicant *wpa_s;
++	char *country;
++
++	wpa_s = global->ifaces;
++
++	if (wpa_s == NULL)
++		return NULL;
++
++	country = wpa_drv_get_country(wpa_s);
++
++	reply = wpas_dbus_simple_property_getter(message, DBUS_TYPE_STRING,
++						&country);
++
++	os_free(country);
++
++	return reply;
++}
++
++
++/**
++ * wpas_dbus_setter_country - Set the ISO/IEC alpha2 country code
++ * @message: Pointer to incoming dbus message
++ * @global: %wpa_supplicant global data structure
++ * Returns: %NULL or DBus error message
++ *
++ * Setter function for the "Country" property.
++ */
++DBusMessage * wpas_dbus_setter_country(DBusMessage *message,
++				       struct wpa_global *global)
++{
++	struct wpa_supplicant *wpa_s;
++	DBusMessage *reply = NULL;
++	char *country;
++
++	wpa_s = global->ifaces;
++
++	if (wpa_s == NULL)
++		return NULL;
++
++	reply = wpas_dbus_simple_property_setter(message, DBUS_TYPE_STRING,
++						 &country);
++	if (reply)
++		return reply;
++
++	if (wpa_drv_set_country(wpa_s, country))
++		return wpas_dbus_error_invalid_args(message, "Invalid country");
++
++	return NULL;
++}
+ 
+ static int wpas_dbus_get_scan_type(DBusMessage *message, DBusMessageIter *var,
+ 				   char **type, DBusMessage **reply)
+diff --git a/wpa_supplicant/dbus/dbus_new_handlers.h b/wpa_supplicant/dbus/dbus_new_handlers.h
+index 3cdf9cb..3d0b9d6 100644
+--- a/wpa_supplicant/dbus/dbus_new_handlers.h
++++ b/wpa_supplicant/dbus/dbus_new_handlers.h
+@@ -71,6 +71,12 @@ DBusMessage * wpas_dbus_getter_interfaces(DBusMessage *message,
+ DBusMessage * wpas_dbus_getter_eap_methods(DBusMessage *message,
+ 					   void *nothing);
+ 
++DBusMessage * wpas_dbus_getter_country(DBusMessage *message,
++				       struct wpa_global *global);
++
++DBusMessage * wpas_dbus_setter_country(DBusMessage *message,
++				       struct wpa_global *global);
++
+ DBusMessage * wpas_dbus_handler_scan(DBusMessage *message,
+ 				     struct wpa_supplicant *wpa_s);
+ 
+-- 
+1.7.2.3
+
