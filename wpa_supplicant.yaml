@@ -1,47 +1,60 @@
 Name: wpa_supplicant
 Summary: WPA/WPA2/IEEE 802.1X Supplicant
-Version: 0.7.3
+Version: 1.0
 Release: 1
-Group: System/Base
-License: BSD
+Group: System Environment/Base
+License: GPLv2
 URL: http://w1.fi/wpa_supplicant/
 Sources:
     - http://w1.fi/releases/%{name}-%{version}.tar.gz
-    - "%{name}.config"
+    - build-config
+    - "%{name}.conf"
+    - "%{name}.service"
+    - "%{name}.sysconfig"
+    - "%{name}.logrotate"
+    - "wpa_supplicant-0.7.2-generate-libeap-peer.patch"
 Patches:
-    - 0001-eap_peer-create-a-libeap-library-with-header-files-a.patch
-    - 0001-events-Custom-event-for-broadcom-proprietary-driver.patch
-    - 0002-nl80211-Add-a-get_country-hook.patch
-    - 0003-dbus-Add-a-Country-global-property.patch
-    - wpa_s-alldrivers.patch
-
+    - wpa_supplicant-assoc-timeout.patch
+    - wpa_supplicant-flush-debug-output.patch
+    - wpa_supplicant-dbus-service-file-args.patch
+    - wpa_supplicant-quiet-scan-results-message.patch
+    - wpa_supplicant-squelch-driver-disconnect-spam.patch
+    - wpa_supplicant-openssl-more-algs.patch
+    - wpa_supplicant-gui-qt4.patch
+    - wpa_supplicant-1.0-wpagui-getopt.patch
+    - libnl3-includes.patch
 Description: |
-    wpa_supplicant is a WPA Supplicant for Linux, BSD and Windows with support 
-    for WPA and WPA2 (IEEE 802.11i / RSN). Supplicant is the IEEE 802.1X/WPA 
-    component that is used in the client stations. It implements key negotiation 
-    with a WPA Authenticator and it controls the roaming and IEEE 802.11 
+    wpa_supplicant is a WPA Supplicant for Linux, BSD and Windows with support
+    for WPA and WPA2 (IEEE 802.11i / RSN). Supplicant is the IEEE 802.1X/WPA
+    component that is used in the client stations. It implements key negotiation
+    with a WPA Authenticator and it controls the roaming and IEEE 802.11
     authentication/association of the wlan driver.
+
 PkgBR:
-    - readline
+    - readline-devel
 PkgConfigBR:
-    - openssl
-    - libnl-1
+    - libnl-3.0
     - dbus-1
+    - openssl
 Configure: none
 Builder: none
+NoSystemdService: true
 SubPackages:
-    - Name: libeap0
-      AsWholeName: true
-      Summary: EAP-Peer runtime library
-      Group: System/Libraries
-      Description: |
-          This is just the runtime for EAP-Peer authentication.
-
-    - Name: libeap0-devel
-      AsWholeName: true
-      Requires: libeap0
-      Summary: EAP-Peer development support
+    - Name: libeap-devel
+      AsWholeName: yes
+      Summary: Header files for EAP peer library
       Group: Development/Libraries
       Description: |
-          Development support for for EAP-Peer authentication library
-          (header files and package config).
+          This package contains header files for using the EAP peer library.
+          Don't use this unless you know what you're doing.
+      Requires:
+          - libeap = %{version}-%{release}
+
+    - Name: libeap
+      AsWholeName: yes
+      Summary: EAP peer library
+      Group: System Environment/Libraries
+      Description: |
+          This package contains the runtime EAP peer library. Don't use this
+          unless you know what you're doing.
+

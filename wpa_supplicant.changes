@@ -1,3 +1,6 @@
+* Mon May 14 2012 Marko Saukko <sage@merproject.org> - 1.0
+- Update wpa_supplicant to version 1.0
+
 * Tue Jan 18 2011 Martin Xu <martin.xu@intel.com> - 0.7.3
 - add patch wpa_s-alldrivers.patch to fix BMC #12576
 
