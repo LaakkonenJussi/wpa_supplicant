@@ -42,7 +42,7 @@ diff --git a/src/eap_peer/Makefile b/src/eap_peer/Makefile
 index 3651056..58c067a 100644
 --- a/src/eap_peer/Makefile
 +++ b/src/eap_peer/Makefile
-@@ -1,11 +1,192 @@
+@@ -1,11 +1,193 @@
 -all:
 -	@echo Nothing to be made.
 +LIBEAP_NAME = libeap
@@ -89,7 +89,6 @@ index 3651056..58c067a 100644
 +OBJS_both += ../utils/base64.o
 +OBJS_both += ../utils/wpabuf.o
 +OBJS_both += ../crypto/md5.o
-+OBJS_both += ../crypto/sha1.o
 +OBJS_both += ../crypto/sha1-tlsprf.o
 +OBJS_both += ../crypto/aes-encblock.o
 +OBJS_both += ../crypto/aes-wrap.o
@@ -148,6 +147,8 @@ index 3651056..58c067a 100644
 +OBJS_both += ../crypto/crypto_openssl.o
 +LIBS += -lssl -lcrypto
 +override CFLAGS += -DINTERNAL_SHA256
++else
++OBJS_both += ../crypto/sha1.o
 +endif
 +
 +ifeq ($(CONFIG_TLS), internal)
