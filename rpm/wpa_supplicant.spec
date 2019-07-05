@@ -48,7 +48,7 @@ popd
 rm -rf %{buildroot}
 
 # init scripts
-install -D -m 0644 %{SOURCE3} %{buildroot}/%{_lib}/systemd/system/%{name}.service
+install -D -m 0644 %{SOURCE3} %{buildroot}%{_libdir}/systemd/system/%{name}.service
 install -D -m 0644 %{SOURCE4} %{buildroot}/%{_sysconfdir}/sysconfig/%{name}
 
 # config
@@ -94,10 +94,10 @@ rm -f /var/log/wpa_supplicant.log || :
 
 %files
 %defattr(-,root,root,-)
-%doc COPYING 
+%doc COPYING
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
-/%{_lib}/systemd/system/%{name}.service
+%{_libdir}/systemd/system/%{name}.service
 %{_sysconfdir}/dbus-1/system.d/%{name}.conf
 %{_datadir}/dbus-1/system-services/fi.w1.wpa_supplicant1.service
 %{_sbindir}/wpa_passphrase
@@ -107,4 +107,3 @@ rm -f /var/log/wpa_supplicant.log || :
 #%doc %{_mandir}/man8/*
 #%doc %{_mandir}/man5/*
 #%doc %{name}/ChangeLog README %{name}/eap_testing.txt %{name}/todo.txt %{name}/wpa_supplicant.conf %{name}/examples
-
