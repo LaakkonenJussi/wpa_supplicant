@@ -1,7 +1,7 @@
 Name:       wpa_supplicant
 
 Summary:    WPA/WPA2/IEEE 802.1X Supplicant
-Version:    2.10
+Version:    2.9
 Release:    1
 License:    GPLv2
 URL:        https://github.com/sailfishos/wpa_supplicant
@@ -11,8 +11,9 @@ Source2:    %{name}.conf
 Source3:    %{name}.service
 Source4:    %{name}.sysconfig
 Patch0:     0001-Revert-nl80211-Set-NL80211_ATTR_IFACE_SOCKET_OWNER-f.patch
-Patch1:     wpa_supplicant_tls.patch
-Patch2:     wpa_supplicant_dbus_service_syslog.patch
+Patch1:     0001-AP-Silently-ignore-management-frame-from-unexpected.patch
+Patch2:     0001-P2P-Fix-copying-of-secondary-device-types-for-P2P-gr.patch
+Patch3:     0001-P2P-Fix-a-corner-case-in-peer-addition-based-on-PD-R.patch
 BuildRequires:  pkgconfig(libnl-3.0)
 BuildRequires:  pkgconfig(dbus-1)
 BuildRequires:  pkgconfig(openssl)
@@ -44,6 +45,7 @@ LIBDIR="%{_libdir}" ; export LIBDIR ;
 popd
 
 %install
+rm -rf %{buildroot}
 
 # init scripts
 install -D -m 0644 %{SOURCE3} %{buildroot}%{_unitdir}/%{name}.service
@@ -57,7 +59,7 @@ install -d %{buildroot}/%{_sbindir}
 install -m 0755 %{name}/wpa_passphrase %{buildroot}/%{_sbindir}
 install -m 0755 %{name}/wpa_cli %{buildroot}/%{_sbindir}
 install -m 0755 %{name}/wpa_supplicant %{buildroot}/%{_sbindir}
-install -D -m 0644 %{name}/dbus/dbus-wpa_supplicant.conf %{buildroot}/%{_datadir}/dbus-1/system.d/wpa_supplicant.conf
+install -D -m 0644 %{name}/dbus/dbus-wpa_supplicant.conf %{buildroot}/%{_sysconfdir}/dbus-1/system.d/wpa_supplicant.conf
 install -D -m 0644 %{name}/dbus/fi.w1.wpa_supplicant1.service %{buildroot}/%{_datadir}/dbus-1/system-services/fi.w1.wpa_supplicant1.service
 
 # some cleanup in docs and examples
@@ -91,7 +93,7 @@ rm -f /var/log/wpa_supplicant.log || :
 %config %{_sysconfdir}/%{name}/%{name}.conf
 %config %{_sysconfdir}/sysconfig/%{name}
 %{_unitdir}/%{name}.service
-%{_datadir}/dbus-1/system.d/%{name}.conf
+%{_sysconfdir}/dbus-1/system.d/%{name}.conf
 %{_datadir}/dbus-1/system-services/fi.w1.wpa_supplicant1.service
 %{_sbindir}/wpa_passphrase
 %{_sbindir}/wpa_supplicant
