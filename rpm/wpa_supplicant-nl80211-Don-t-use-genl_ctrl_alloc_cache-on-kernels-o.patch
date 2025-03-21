@@ -1,0 +1,68 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Matti=20Lehtim=C3=A4ki?= <matti.lehtimaki@jolla.com>
+Date: Sun, 8 Feb 2026 19:55:03 +0200
+Subject: [PATCH] nl80211: Don't use genl_ctrl_alloc_cache on kernels older than 3.10
+
+It doesn't work and we can hardcode the maximum supported attribute
+value instead.
+
+Signed-off-by: Matti Lehtimäki <matti.lehtimaki@jolla.com>
+---
+ src/drivers/driver_nl80211.c | 42 ++++++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
+
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index 1e19d761df327fbe1114d2da5c3d328368e6dae4..0138a0b3898313e4c4e67f58d2a93207aa2b6918 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -2014,27 +2014,31 @@ static int wpa_driver_nl80211_init_nl_global(struct nl80211_global *global)
+ 	}
+ 
+ 	/* Resolve maxattr for kernel support checks */
+-	ret = genl_ctrl_alloc_cache(global->nl, &cache);
+-	if (ret < 0) {
+-		wpa_printf(MSG_DEBUG,
+-			   "nl80211: Could not allocate genl cache: %d (%s)",
+-			   ret, nl_geterror(ret));
+-		goto err;
+-	}
++	if (global->kernel_version >= KERNEL_VERSION(3, 10, 0)) {
++		ret = genl_ctrl_alloc_cache(global->nl, &cache);
++		if (ret < 0) {
++			wpa_printf(MSG_DEBUG,
++				   "nl80211: Could not allocate genl cache: %d (%s)",
++				   ret, nl_geterror(ret));
++			goto err;
++		}
+ 
+-	family = genl_ctrl_search(cache, global->nl80211_id);
+-	if (!family) {
+-		wpa_printf(MSG_DEBUG,
+-			   "nl80211: Could not get nl80211 family from cache: %d (%s)",
+-			   ret, nl_geterror(ret));
+-		goto err;
+-	}
++		family = genl_ctrl_search(cache, global->nl80211_id);
++		if (!family) {
++			wpa_printf(MSG_DEBUG,
++				   "nl80211: Could not get nl80211 family from cache: %d (%s)",
++				   ret, nl_geterror(ret));
++			goto err;
++		}
+ 
+-	global->nl80211_maxattr = genl_family_get_maxattr(family);
+-	wpa_printf(MSG_DEBUG, "nl80211: Maximum supported attribute ID: %u",
+-		   global->nl80211_maxattr);
+-	genl_family_put(family);
+-	nl_cache_free(cache);
++		global->nl80211_maxattr = genl_family_get_maxattr(family);
++		wpa_printf(MSG_DEBUG, "nl80211: Maximum supported attribute ID: %u",
++			   global->nl80211_maxattr);
++		genl_family_put(family);
++		nl_cache_free(cache);
++	} else {
++		global->nl80211_maxattr = NL80211_ATTR_MAX_CRIT_PROT_DURATION;
++	}
+ 
+ 	nl_cb_set(global->nl_cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM,
+ 		  no_seq_check, NULL);
