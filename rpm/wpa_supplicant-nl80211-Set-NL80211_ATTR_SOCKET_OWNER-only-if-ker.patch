@@ -1,0 +1,154 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Matti=20Lehtim=C3=A4ki?= <matti.lehtimaki@jolla.com>
+Date: Fri, 21 Mar 2025 20:16:07 +0200
+Subject: [PATCH] nl80211: Set NL80211_ATTR_SOCKET_OWNER only if kernel
+ supports it
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Matti Lehtimäki <matti.lehtimaki@jolla.com>
+---
+ src/drivers/driver_nl80211.c | 48 +++++++++++++++++++++++++-----------
+ src/drivers/driver_nl80211.h |  1 +
+ 2 files changed, 35 insertions(+), 14 deletions(-)
+
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index e6fbad96d..1e19d761d 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -21,6 +21,7 @@
+ #include <linux/rtnetlink.h>
+ #include <netpacket/packet.h>
+ #include <linux/errqueue.h>
++#include <linux/version.h>
+ 
+ #include "common.h"
+ #include "eloop.h"
+@@ -5421,8 +5422,10 @@ static int wpa_driver_nl80211_set_ap(void *priv,
+ 					 NL80211_DRV_LINK_ID_NA);
+ #endif /* CONFIG_DRIVER_NL80211_QCA */
+ 
+-	if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
+-		goto fail;
++	if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
++			goto fail;
++	}
+ 	ret = send_and_recv(drv->global, bss->nl_connect, msg, NULL, NULL, NULL,
+ 			    NULL, NULL);
+ 	if (ret) {
+@@ -6029,8 +6032,10 @@ static int nl80211_create_iface_once(struct wpa_driver_nl80211_data *drv,
+ 	 * Tell cfg80211 that the interface belongs to the socket that created
+ 	 * it, and the interface should be deleted when the socket is closed.
+ 	 */
+-	if (nla_put_flag(msg, NL80211_ATTR_IFACE_SOCKET_OWNER))
+-		goto fail;
++	if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++		if (nla_put_flag(msg, NL80211_ATTR_IFACE_SOCKET_OWNER))
++			goto fail;
++	}
+ 
+ 	if ((addr && iftype == NL80211_IFTYPE_P2P_DEVICE) &&
+ 	    nla_put(msg, NL80211_ATTR_MAC, ETH_ALEN, addr))
+@@ -6607,8 +6612,10 @@ retry:
+ 	if (ret < 0)
+ 		goto fail;
+ 
+-	if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
+-		goto fail;
++	if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
++			goto fail;
++	}
+ 	ret = send_and_recv(drv->global, drv->first_bss->nl_connect, msg, NULL,
+ 			    NULL, NULL, NULL, NULL);
+ 	msg = NULL;
+@@ -6743,8 +6750,10 @@ static int nl80211_connect_common(struct wpa_driver_nl80211_data *drv,
+ 		drv->sta_mlo_info.req_links = mld_params->valid_links;
+ 	}
+ 
+-	if (nla_put_flag(msg, NL80211_ATTR_IFACE_SOCKET_OWNER))
+-		return -1;
++	if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++		if (nla_put_flag(msg, NL80211_ATTR_IFACE_SOCKET_OWNER))
++			return -1;
++	}
+ 
+ 	if (params->bssid && !params->mld_params.mld_addr) {
+ 		wpa_printf(MSG_DEBUG, "  * bssid=" MACSTR,
+@@ -7163,8 +7172,10 @@ skip_auth_type:
+ 	if (ret)
+ 		goto fail;
+ 
+-	if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
+-		goto fail;
++	if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
++			goto fail;
++	}
+ 	ret = send_and_recv(drv->global, bss->nl_connect, msg, NULL, NULL, NULL,
+ 			    NULL, NULL);
+ 	msg = NULL;
+@@ -7279,8 +7290,10 @@ static int wpa_driver_nl80211_associate(
+ 	}
+ 
+ 	if (!TEST_FAIL_TAG("assoc")) {
+-		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
+-			goto fail;
++		if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++			if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
++				goto fail;
++		}
+ 		ret = send_and_recv(drv->global, drv->first_bss->nl_connect,
+ 				    msg, NULL, NULL, NULL, NULL, &err_info);
+ 		msg = NULL;
+@@ -9908,11 +9921,15 @@ static void * nl80211_global_init(void *ctx)
+ 	struct nl80211_global *global;
+ 	struct netlink_config *cfg;
+ 	struct utsname name;
++	unsigned int kernel_version = LINUX_VERSION_CODE;
+ 
+ 	if (uname(&name) == 0) {
++		unsigned int major, minor, patch;
+ 		wpa_printf(MSG_DEBUG, "nl80211: Kernel version: %s %s (%s; %s)",
+ 			   name.sysname, name.release,
+ 			   name.version, name.machine);
++		sscanf(name.release, "%u.%u.%u", &major, &minor, &patch);
++		kernel_version = KERNEL_VERSION(major, minor, patch);
+ 	}
+ 
+ 	global = os_zalloc(sizeof(*global));
+@@ -9922,6 +9939,7 @@ static void * nl80211_global_init(void *ctx)
+ 	global->ioctl_sock = -1;
+ 	dl_list_init(&global->interfaces);
+ 	global->if_add_ifindex = -1;
++	global->kernel_version = kernel_version;
+ 
+ 	cfg = os_zalloc(sizeof(*cfg));
+ 	if (cfg == NULL)
+@@ -12079,8 +12097,10 @@ static int nl80211_join_mesh(struct i802_bss *bss,
+ 	if (nl80211_put_mesh_config(msg, &params->conf) < 0)
+ 		goto fail;
+ 
+-	if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
+-		return -1;
++	if (drv->global->kernel_version >= KERNEL_VERSION(3, 16, 0)) {
++		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
++			return -1;
++	}
+ 	ret = send_and_recv(drv->global, bss->nl_connect, msg, NULL, NULL, NULL,
+ 			    NULL, NULL);
+ 	msg = NULL;
+diff --git a/src/drivers/driver_nl80211.h b/src/drivers/driver_nl80211.h
+index 4926c47ae..a8e172cd2 100644
+--- a/src/drivers/driver_nl80211.h
++++ b/src/drivers/driver_nl80211.h
+@@ -35,6 +35,7 @@ struct nl80211_global {
+ 	unsigned int nl80211_maxattr;
+ 	int nlctrl_id;
+ 	int ioctl_sock; /* socket for ioctl() use */
++	int kernel_version;
+ 
+ 	struct nl_sock *nl_event;
+ };
