@@ -1,0 +1,28 @@
+From 60f96e8d327de688c935ab2a0ab4844d2a383292 Mon Sep 17 00:00:00 2001
+From: Jussi Laakkonen <jussi.laakkonen@jolla.com>
+Date: Fri, 13 Mar 2026 18:39:38 +0200
+Subject: [PATCH] SAE: Set default sae_pwe to 2 (SAE_PWE_BOTH)
+
+The default, being unset, is equal to 0 in the config. Some WPA3
+networks require either of the HnP or H2E method to be used as the
+password-to-element method. Enable both for Sailfish OS.
+---
+ wpa_supplicant/config_ssid.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wpa_supplicant/config_ssid.h b/wpa_supplicant/config_ssid.h
+index 43a130530..80d8b96a1 100644
+--- a/wpa_supplicant/config_ssid.h
++++ b/wpa_supplicant/config_ssid.h
+@@ -47,7 +47,7 @@
+ #define DEFAULT_MAX_OPER_CHWIDTH -1
+ 
+ /* Consider global sae_pwe for SAE mechanism for PWE derivation */
+-#define DEFAULT_SAE_PWE SAE_PWE_NOT_SET
++#define DEFAULT_SAE_PWE SAE_PWE_BOTH
+ 
+ struct psk_list_entry {
+ 	struct dl_list list;
+-- 
+2.47.3
+

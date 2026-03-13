@@ -25,6 +25,7 @@ Patch7:     wpa_supplicant-nl80211-Implement-support-for-scheduled-scan-timeout.
 Patch8:     wpa_supplicant-Notify-scheduled-scan-stop-add-notify.patch
 Patch9:     wpa_supplicant-nl80211-Set-NL80211_ATTR_SOCKET_OWNER-only-if-ker.patch
 Patch10:    wpa_supplicant-nl80211-Don-t-use-genl_ctrl_alloc_cache-on-kernels-o.patch
+Patch11:    wpa_supplicant-SAE-Set-default-sae_pwe-to-2-SAE_PWE_BOTH.patch
 BuildRequires:  pkgconfig(libnl-3.0)
 BuildRequires:  pkgconfig(dbus-1)
 BuildRequires:  pkgconfig(openssl)
