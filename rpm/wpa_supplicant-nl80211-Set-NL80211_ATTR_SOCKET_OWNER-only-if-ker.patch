@@ -14,7 +14,7 @@ Signed-off-by: Matti Lehtimäki <matti.lehtimaki@jolla.com>
  2 files changed, 35 insertions(+), 14 deletions(-)
 
 diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
-index e6fbad96d..1e19d761d 100644
+index f4260bec7..6f80bbb0a 100644
 --- a/src/drivers/driver_nl80211.c
 +++ b/src/drivers/driver_nl80211.c
 @@ -21,6 +21,7 @@
@@ -25,7 +25,7 @@ index e6fbad96d..1e19d761d 100644
  
  #include "common.h"
  #include "eloop.h"
-@@ -5421,8 +5422,10 @@ static int wpa_driver_nl80211_set_ap(void *priv,
+@@ -6115,8 +6116,10 @@ static int wpa_driver_nl80211_set_ap(void *priv,
  					 NL80211_DRV_LINK_ID_NA);
  #endif /* CONFIG_DRIVER_NL80211_QCA */
  
@@ -35,10 +35,10 @@ index e6fbad96d..1e19d761d 100644
 +		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
 +			goto fail;
 +	}
- 	ret = send_and_recv(drv->global, bss->nl_connect, msg, NULL, NULL, NULL,
+ 	ret = send_and_recv(drv, bss->nl_connect, msg, NULL, NULL, NULL,
  			    NULL, NULL);
  	if (ret) {
-@@ -6029,8 +6032,10 @@ static int nl80211_create_iface_once(struct wpa_driver_nl80211_data *drv,
+@@ -6836,8 +6839,10 @@ static int nl80211_create_iface_once(struct wpa_driver_nl80211_data *drv,
  	 * Tell cfg80211 that the interface belongs to the socket that created
  	 * it, and the interface should be deleted when the socket is closed.
  	 */
@@ -49,9 +49,9 @@ index e6fbad96d..1e19d761d 100644
 +			goto fail;
 +	}
  
- 	if ((addr && iftype == NL80211_IFTYPE_P2P_DEVICE) &&
- 	    nla_put(msg, NL80211_ATTR_MAC, ETH_ALEN, addr))
-@@ -6607,8 +6612,10 @@ retry:
+ 	if ((addr && (iftype == NL80211_IFTYPE_P2P_DEVICE ||
+ 		      iftype == NL80211_IFTYPE_PD ||
+@@ -7397,8 +7402,10 @@ retry:
  	if (ret < 0)
  		goto fail;
  
@@ -61,10 +61,10 @@ index e6fbad96d..1e19d761d 100644
 +		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
 +			goto fail;
 +	}
- 	ret = send_and_recv(drv->global, drv->first_bss->nl_connect, msg, NULL,
+ 	ret = send_and_recv(drv, drv->first_bss->nl_connect, msg, NULL,
  			    NULL, NULL, NULL, NULL);
  	msg = NULL;
-@@ -6743,8 +6750,10 @@ static int nl80211_connect_common(struct wpa_driver_nl80211_data *drv,
+@@ -7533,8 +7540,10 @@ static int nl80211_connect_common(struct wpa_driver_nl80211_data *drv,
  		drv->sta_mlo_info.req_links = mld_params->valid_links;
  	}
  
@@ -77,7 +77,7 @@ index e6fbad96d..1e19d761d 100644
  
  	if (params->bssid && !params->mld_params.mld_addr) {
  		wpa_printf(MSG_DEBUG, "  * bssid=" MACSTR,
-@@ -7163,8 +7172,10 @@ skip_auth_type:
+@@ -8046,8 +8055,10 @@ skip_auth_type:
  	if (ret)
  		goto fail;
  
@@ -87,10 +87,10 @@ index e6fbad96d..1e19d761d 100644
 +		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
 +			goto fail;
 +	}
- 	ret = send_and_recv(drv->global, bss->nl_connect, msg, NULL, NULL, NULL,
+ 	ret = send_and_recv(drv, bss->nl_connect, msg, NULL, NULL, NULL,
  			    NULL, NULL);
  	msg = NULL;
-@@ -7279,8 +7290,10 @@ static int wpa_driver_nl80211_associate(
+@@ -8166,8 +8177,10 @@ static int wpa_driver_nl80211_associate(
  	}
  
  	if (!TEST_FAIL_TAG("assoc")) {
@@ -100,10 +100,10 @@ index e6fbad96d..1e19d761d 100644
 +			if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
 +				goto fail;
 +		}
- 		ret = send_and_recv(drv->global, drv->first_bss->nl_connect,
+ 		ret = send_and_recv(drv, drv->first_bss->nl_connect,
  				    msg, NULL, NULL, NULL, NULL, &err_info);
  		msg = NULL;
-@@ -9908,11 +9921,15 @@ static void * nl80211_global_init(void *ctx)
+@@ -10937,11 +10950,15 @@ static void * nl80211_global_init(void *ctx)
  	struct nl80211_global *global;
  	struct netlink_config *cfg;
  	struct utsname name;
@@ -119,15 +119,15 @@ index e6fbad96d..1e19d761d 100644
  	}
  
  	global = os_zalloc(sizeof(*global));
-@@ -9922,6 +9939,7 @@ static void * nl80211_global_init(void *ctx)
- 	global->ioctl_sock = -1;
+@@ -10952,6 +10969,7 @@ static void * nl80211_global_init(void *ctx)
  	dl_list_init(&global->interfaces);
+ 	dl_list_init(&global->pending_events);
  	global->if_add_ifindex = -1;
 +	global->kernel_version = kernel_version;
  
  	cfg = os_zalloc(sizeof(*cfg));
  	if (cfg == NULL)
-@@ -12079,8 +12097,10 @@ static int nl80211_join_mesh(struct i802_bss *bss,
+@@ -13162,8 +13180,10 @@ static int nl80211_join_mesh(struct i802_bss *bss,
  	if (nl80211_put_mesh_config(msg, &params->conf) < 0)
  		goto fail;
  
@@ -137,18 +137,18 @@ index e6fbad96d..1e19d761d 100644
 +		if (nla_put_flag(msg, NL80211_ATTR_SOCKET_OWNER))
 +			return -1;
 +	}
- 	ret = send_and_recv(drv->global, bss->nl_connect, msg, NULL, NULL, NULL,
+ 	ret = send_and_recv(drv, bss->nl_connect, msg, NULL, NULL, NULL,
  			    NULL, NULL);
  	msg = NULL;
 diff --git a/src/drivers/driver_nl80211.h b/src/drivers/driver_nl80211.h
-index 4926c47ae..a8e172cd2 100644
+index 580de5a3a..1a7d1cf49 100644
 --- a/src/drivers/driver_nl80211.h
 +++ b/src/drivers/driver_nl80211.h
-@@ -35,6 +35,7 @@ struct nl80211_global {
+@@ -37,6 +37,7 @@ struct nl80211_global {
  	unsigned int nl80211_maxattr;
  	int nlctrl_id;
  	int ioctl_sock; /* socket for ioctl() use */
 +	int kernel_version;
  
  	struct nl_sock *nl_event;
- };
+ 

@@ -1,3 +1,5 @@
+diff --git a/src/utils/wpa_debug.c b/src/utils/wpa_debug.c
+index 0cd94a038..c5dd34bbe 100644
 --- a/src/utils/wpa_debug.c
 +++ b/src/utils/wpa_debug.c
 @@ -79,6 +79,7 @@ void wpa_debug_print_timestamp(void)
@@ -8,7 +10,7 @@
  #endif /* CONFIG_DEBUG_FILE */
  	if (!out_file && !wpa_debug_syslog)
  		printf("%ld.%06u: ", (long) tv.sec, (unsigned int) tv.usec);
-@@ -230,6 +231,7 @@ void wpa_printf(int level, const char *f
+@@ -244,6 +245,7 @@ void wpa_printf(int level, const char *fmt, ...)
  			va_start(ap, fmt);
  			vfprintf(out_file, fmt, ap);
  			fprintf(out_file, "\n");
@@ -16,7 +18,7 @@
  			va_end(ap);
  		}
  #endif /* CONFIG_DEBUG_FILE */
-@@ -365,6 +367,7 @@ static void _wpa_hexdump(int level, cons
+@@ -379,6 +381,7 @@ static void _wpa_hexdump(int level, const char *title, const u8 *buf,
  			fprintf(out_file, " [REMOVED]");
  		}
  		fprintf(out_file, "\n");
@@ -24,7 +26,7 @@
  	}
  #endif /* CONFIG_DEBUG_FILE */
  	if (!wpa_debug_syslog && !out_file) {
-@@ -468,6 +471,8 @@ static void _wpa_hexdump_ascii(int level
+@@ -482,6 +485,8 @@ static void _wpa_hexdump_ascii(int level, const char *title, const void *buf,
  		}
  	}
  file_done:

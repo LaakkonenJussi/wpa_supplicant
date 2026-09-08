@@ -1,7 +1,8 @@
-diff -up wpa_supplicant-2.10/src/crypto/tls_openssl.c.legacy-server-connect wpa_supplicant-2.10/src/crypto/tls_openssl.c
---- wpa_supplicant-2.10/src/crypto/tls_openssl.c.legacy-server-connect  2022-01-16 15:51:29.000000000 -0500
-+++ wpa_supplicant-2.10/src/crypto/tls_openssl.c        2022-04-28 02:47:26.863529683 -0400
-@@ -1049,6 +1049,16 @@
+diff --git a/src/crypto/tls_openssl.c b/src/crypto/tls_openssl.c
+index 56c6fa057..d71366aa9 100644
+--- a/src/crypto/tls_openssl.c
++++ b/src/crypto/tls_openssl.c
+@@ -1382,6 +1382,16 @@ void * tls_init(const struct tls_config *conf)
  	SSL_CTX_set_options(ssl, SSL_OP_NO_SSLv2);
  	SSL_CTX_set_options(ssl, SSL_OP_NO_SSLv3);
  

@@ -21,10 +21,10 @@ Signed-off-by: Jussi Laakkonen <jussi.laakkonen@jolla.com>
  3 files changed, 60 insertions(+), 11 deletions(-)
 
 diff --git a/src/drivers/driver_nl80211.h b/src/drivers/driver_nl80211.h
-index 618746e67..4926c47ae 100644
+index 1a7d1cf49..36281af53 100644
 --- a/src/drivers/driver_nl80211.h
 +++ b/src/drivers/driver_nl80211.h
-@@ -397,6 +397,9 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
+@@ -449,6 +449,9 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
  /* driver_nl80211_scan.c */
  
  void wpa_driver_nl80211_scan_timeout(void *eloop_ctx, void *timeout_ctx);
@@ -35,10 +35,10 @@ index 618746e67..4926c47ae 100644
  			    struct wpa_driver_scan_params *params);
  int wpa_driver_nl80211_sched_scan(void *priv,
 diff --git a/src/drivers/driver_nl80211_event.c b/src/drivers/driver_nl80211_event.c
-index aee815e97..33169b93e 100644
+index 0b111bf66..2d1e5ab43 100644
 --- a/src/drivers/driver_nl80211_event.c
 +++ b/src/drivers/driver_nl80211_event.c
-@@ -3858,6 +3858,7 @@ static void do_process_drv_event(struct i802_bss *bss, int cmd,
+@@ -4828,6 +4828,7 @@ static void do_process_drv_event(struct i802_bss *bss, int cmd,
  {
  	struct wpa_driver_nl80211_data *drv = bss->drv;
  	int external_scan_event = 0;
@@ -46,9 +46,9 @@ index aee815e97..33169b93e 100644
  	struct nlattr *frame = tb[NL80211_ATTR_FRAME];
  
  	wpa_printf(MSG_DEBUG, "nl80211: Drv Event %d (%s) received for %s",
-@@ -3911,10 +3912,18 @@ static void do_process_drv_event(struct i802_bss *bss, int cmd,
+@@ -4881,10 +4882,18 @@ static void do_process_drv_event(struct i802_bss *bss, int cmd,
  	case NL80211_CMD_START_SCHED_SCAN:
- 		wpa_dbg(drv->ctx, MSG_DEBUG, "nl80211: Sched scan started");
+ 		wpa_dbg(bss->ctx, MSG_DEBUG, "nl80211: Sched scan started");
  		drv->scan_state = SCHED_SCAN_STARTED;
 +		eloop_cancel_timeout(wpa_driver_nl80211_scheduled_scan_timeout,
 +				drv, drv->ctx);
@@ -58,18 +58,18 @@ index aee815e97..33169b93e 100644
 +				drv->ctx);
  		break;
  	case NL80211_CMD_SCHED_SCAN_STOPPED:
- 		wpa_dbg(drv->ctx, MSG_DEBUG, "nl80211: Sched scan stopped");
+ 		wpa_dbg(bss->ctx, MSG_DEBUG, "nl80211: Sched scan stopped");
  		drv->scan_state = SCHED_SCAN_STOPPED;
 +		eloop_cancel_timeout(wpa_driver_nl80211_scheduled_scan_timeout,
 +				drv, drv->ctx);
- 		wpa_supplicant_event(drv->ctx, EVENT_SCHED_SCAN_STOPPED, NULL);
+ 		wpa_supplicant_event(bss->ctx, EVENT_SCHED_SCAN_STOPPED, NULL);
  		break;
  	case NL80211_CMD_NEW_SCAN_RESULTS:
 diff --git a/src/drivers/driver_nl80211_scan.c b/src/drivers/driver_nl80211_scan.c
-index b055e684a..65c75ef4e 100644
+index b44f0a1d5..3baf6321c 100644
 --- a/src/drivers/driver_nl80211_scan.c
 +++ b/src/drivers/driver_nl80211_scan.c
-@@ -173,6 +173,35 @@ void wpa_driver_nl80211_scan_timeout(void *eloop_ctx, void *timeout_ctx)
+@@ -188,6 +188,35 @@ void wpa_driver_nl80211_scan_timeout(void *eloop_ctx, void *timeout_ctx)
  	wpa_supplicant_event(timeout_ctx, EVENT_SCAN_RESULTS, NULL);
  }
  
@@ -105,7 +105,7 @@ index b055e684a..65c75ef4e 100644
  
  static struct nl_msg *
  nl80211_scan_common(struct i802_bss *bss, u8 cmd,
-@@ -333,6 +362,24 @@ fail:
+@@ -359,6 +388,24 @@ fail:
  	return NULL;
  }
  
@@ -130,7 +130,7 @@ index b055e684a..65c75ef4e 100644
  
  /**
   * wpa_driver_nl80211_scan - Request the driver to initiate scan
-@@ -422,17 +469,7 @@ int wpa_driver_nl80211_scan(struct i802_bss *bss,
+@@ -457,17 +504,7 @@ int wpa_driver_nl80211_scan(struct i802_bss *bss,
  	drv->scan_state = SCAN_REQUESTED;
  	/* Not all drivers generate "scan completed" wireless event, so try to
  	 * read results after a timeout. */
@@ -148,7 +148,7 @@ index b055e684a..65c75ef4e 100644
 +	timeout = wpa_driver_nl80211_get_scan_timeout(drv);
  	wpa_printf(MSG_DEBUG, "Scan requested (ret=%d) - scan timeout %d "
  		   "seconds", ret, timeout);
- 	eloop_cancel_timeout(wpa_driver_nl80211_scan_timeout, drv, drv->ctx);
+ 	eloop_cancel_timeout(wpa_driver_nl80211_scan_timeout, drv, bss->ctx);
 -- 
-2.39.2
+2.47.3
 

@@ -16,10 +16,10 @@ Signed-off-by: Jussi Laakkonen <jussi.laakkonen@jolla.com>
  1 file changed, 8 insertions(+)
 
 diff --git a/wpa_supplicant/scan.c b/wpa_supplicant/scan.c
-index 8b59e409b..34cbbc7d4 100644
+index c143cd2cf..ef534132c 100644
 --- a/wpa_supplicant/scan.c
 +++ b/wpa_supplicant/scan.c
-@@ -211,6 +211,8 @@ static void wpas_trigger_scan_cb(struct wpa_radio_work *work, int deinit)
+@@ -222,6 +222,8 @@ static void wpas_trigger_scan_cb(struct wpa_radio_work *work, int deinit)
  		return;
  	}
  
@@ -28,7 +28,7 @@ index 8b59e409b..34cbbc7d4 100644
  	wpa_supplicant_notify_scanning(wpa_s, 1);
  
  	if (wpa_s->clear_driver_scan_cache) {
-@@ -372,6 +374,8 @@ wpa_supplicant_start_sched_scan(struct wpa_supplicant *wpa_s,
+@@ -383,6 +385,8 @@ wpa_supplicant_start_sched_scan(struct wpa_supplicant *wpa_s,
  {
  	int ret;
  
@@ -37,7 +37,7 @@ index 8b59e409b..34cbbc7d4 100644
  	wpa_supplicant_notify_scanning(wpa_s, 1);
  	ret = wpa_drv_sched_scan(wpa_s, params);
  	if (ret)
-@@ -394,6 +398,10 @@ static int wpa_supplicant_stop_sched_scan(struct wpa_supplicant *wpa_s)
+@@ -405,6 +409,10 @@ static int wpa_supplicant_stop_sched_scan(struct wpa_supplicant *wpa_s)
  		return -1;
  	}
  
@@ -49,5 +49,5 @@ index 8b59e409b..34cbbc7d4 100644
  }
  
 -- 
-2.39.2
+2.47.3
 

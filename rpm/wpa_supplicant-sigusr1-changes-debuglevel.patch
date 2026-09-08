@@ -1,12 +1,12 @@
 ---
- wpa_supplicant/wpa_supplicant.c |   18 ++++++++++++++++++
+ wpa_supplicant/wpa_supplicant.c | 18 ++++++++++++++++++
  1 file changed, 18 insertions(+)
 
-Index: wpa_supplicant-2.10/wpa_supplicant/wpa_supplicant.c
-===================================================================
---- wpa_supplicant-2.10.orig/wpa_supplicant/wpa_supplicant.c
-+++ wpa_supplicant-2.10/wpa_supplicant/wpa_supplicant.c
-@@ -121,6 +121,22 @@ const char *const wpa_supplicant_full_li
+diff --git a/wpa_supplicant/wpa_supplicant.c b/wpa_supplicant/wpa_supplicant.c
+index ee6c27682..279b2f31e 100644
+--- a/wpa_supplicant/wpa_supplicant.c
++++ b/wpa_supplicant/wpa_supplicant.c
+@@ -125,6 +125,22 @@ const char *const wpa_supplicant_full_license5 =
  "\n";
  #endif /* CONFIG_NO_STDOUT_DEBUG */
  
@@ -20,7 +20,7 @@ Index: wpa_supplicant-2.10/wpa_supplicant/wpa_supplicant.c
 +		wpa_debug_level--;
 +	else
 +		wpa_debug_level = MSG_INFO;
-+	
++
 +	wpa_printf(MSG_INFO, "Signal %d received - changing debug level to %s", sig,
 +	           (wpa_debug_level == MSG_INFO) ? "INFO" :
 +	               ((wpa_debug_level == MSG_DEBUG) ? "DEBUG" :
@@ -28,8 +28,8 @@ Index: wpa_supplicant-2.10/wpa_supplicant/wpa_supplicant.c
 +}
  
  static void wpa_bss_tmp_disallow_timeout(void *eloop_ctx, void *timeout_ctx);
- #if defined(CONFIG_FILS) && defined(IEEE8021X_EAPOL)
-@@ -7474,6 +7490,8 @@ int wpa_supplicant_run(struct wpa_global
+ static void wpas_verify_ssid_beacon(void *eloop_ctx, void *timeout_ctx);
+@@ -8940,6 +8956,8 @@ int wpa_supplicant_run(struct wpa_global *global)
  	eloop_register_signal_terminate(wpa_supplicant_terminate, global);
  	eloop_register_signal_reconfig(wpa_supplicant_reconfig, global);
  

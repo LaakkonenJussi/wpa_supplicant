@@ -12,10 +12,10 @@ Signed-off-by: Matti Lehtimäki <matti.lehtimaki@jolla.com>
  1 file changed, 23 insertions(+), 19 deletions(-)
 
 diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
-index 1e19d761df327fbe1114d2da5c3d328368e6dae4..0138a0b3898313e4c4e67f58d2a93207aa2b6918 100644
+index 6f80bbb0a..a0d9ff44c 100644
 --- a/src/drivers/driver_nl80211.c
 +++ b/src/drivers/driver_nl80211.c
-@@ -2014,27 +2014,31 @@ static int wpa_driver_nl80211_init_nl_global(struct nl80211_global *global)
+@@ -2280,27 +2280,31 @@ static int wpa_driver_nl80211_init_nl_global(struct nl80211_global *global)
  	}
  
  	/* Resolve maxattr for kernel support checks */
@@ -64,5 +64,6 @@ index 1e19d761df327fbe1114d2da5c3d328368e6dae4..0138a0b3898313e4c4e67f58d2a93207
 +		global->nl80211_maxattr = NL80211_ATTR_MAX_CRIT_PROT_DURATION;
 +	}
  
- 	nl_cb_set(global->nl_cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM,
- 		  no_seq_check, NULL);
+ 	nl80211_register_eloop_read(&global->nl_event,
+ 				    wpa_driver_nl80211_event_receive,
+

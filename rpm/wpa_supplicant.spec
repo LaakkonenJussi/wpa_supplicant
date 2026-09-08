@@ -1,7 +1,7 @@
 Name:       wpa_supplicant
 
 Summary:    WPA/WPA2/IEEE 802.1X Supplicant
-Version:    2.11
+Version:    2.12
 Release:    1
 License:    BSD
 URL:        https://github.com/sailfishos/wpa_supplicant

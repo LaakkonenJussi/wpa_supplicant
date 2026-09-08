@@ -11,7 +11,7 @@ Subject: Tweak D-Bus/systemd service activation configuration files:
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/wpa_supplicant/dbus/fi.w1.wpa_supplicant1.service.in b/wpa_supplicant/dbus/fi.w1.wpa_supplicant1.service.in
-index d97ff39..3b0af67 100644
+index d97ff3921..3b0af67af 100644
 --- a/wpa_supplicant/dbus/fi.w1.wpa_supplicant1.service.in
 +++ b/wpa_supplicant/dbus/fi.w1.wpa_supplicant1.service.in
 @@ -1,5 +1,5 @@
@@ -22,7 +22,7 @@ index d97ff39..3b0af67 100644
  User=root
  SystemdService=wpa_supplicant.service
 diff --git a/wpa_supplicant/systemd/wpa_supplicant.service.in b/wpa_supplicant/systemd/wpa_supplicant.service.in
-index 58a6228..bc0688a 100644
+index 58a622887..bc0688a80 100644
 --- a/wpa_supplicant/systemd/wpa_supplicant.service.in
 +++ b/wpa_supplicant/systemd/wpa_supplicant.service.in
 @@ -7,7 +7,7 @@ Wants=network.target
